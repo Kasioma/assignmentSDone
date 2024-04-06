@@ -10,10 +10,12 @@ type ErrorType = Partial<Record<UserRegisterSchemaKey, string>>;
 
 export default function Page() {
   const [error, setError] = useState<ErrorType>({});
+  const [errorMessage, setErrorMessage] = useState<string>();
   const router = useRouter();
   const registerMutation = api.auth.signIn.useMutation({
     onError(error) {
-      console.log(error);
+      console.log(error.message);
+      setErrorMessage(error.message);
     },
     onSuccess() {
       router.replace("/");
@@ -34,16 +36,17 @@ export default function Page() {
           error[field as UserRegisterSchemaKey] = message;
         });
       });
+      console.log(error);
       setError(error);
       return;
     }
     registerMutation.mutate(userData.data);
     setError({});
   };
-  console.log(error);
   return (
     <>
       <section className="p-10">
+        {errorMessage && <div className="text-red-600">{errorMessage}</div>}
         <form
           onSubmit={handleRegister}
           className="flex w-2/6 flex-col items-center gap-2 align-middle"
@@ -75,13 +78,13 @@ export default function Page() {
               className="rounded border-4 border-slate-500"
             />
           </div>
-          {/* <div>
-            <label htmlFor="userType">Select User Type:</label>
-            <select id="userType" name="userType">
+          <div>
+            <label htmlFor="role">Select User Type:</label>
+            <select id="role" name="role">
               <option value="player">Player</option>
               <option value="referee">Referee</option>
             </select>
-          </div> */}
+          </div>
           <button>Continue</button>
         </form>
         <div className="flex w-2/6 justify-center">
