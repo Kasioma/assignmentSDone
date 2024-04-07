@@ -1,5 +1,10 @@
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
-import { userLoginSchema, userRegisterSchema } from "@/lib/validators";
+import {
+  userChangePassword,
+  userChangeUsername,
+  userLoginSchema,
+  userRegisterSchema,
+} from "@/lib/validators";
 import { Argon2id } from "oslo/password";
 import { generateId } from "lucia";
 import { userTable } from "@/server/db/schema";
@@ -36,6 +41,7 @@ export const authRouter = createTRPCRouter({
         sessionCookie.value,
         sessionCookie.attributes,
       );
+      return input.role;
     }),
   logIn: publicProcedure
     .input(userLoginSchema)
@@ -80,11 +86,116 @@ export const authRouter = createTRPCRouter({
             sessionCookie.attributes,
           );
         }
+        return user[0]?.role;
       } catch (error) {
         console.error("Error during login:", error);
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "No such account exists",
+        });
+      }
+    }),
+  changeUsername: publicProcedure
+    .input(userChangeUsername)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const user = await ctx.db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.username, input.username));
+
+        console.log(user);
+
+        if (!user || user.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No such account exists",
+          });
+        }
+
+        const storedHashedPassword = user[0]?.password;
+
+        if (storedHashedPassword !== undefined) {
+          const validPassword = await new Argon2id().verify(
+            storedHashedPassword,
+            input.password,
+          );
+
+          if (!validPassword) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Incorrect password",
+            });
+          }
+        }
+        const newUsername = await ctx.db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.username, input.newUsername));
+        if (newUsername.length > 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "USERNAME ALREADY EXISTS",
+          });
+        } else {
+          await ctx.db
+            .update(userTable)
+            .set({ username: input.newUsername })
+            .where(eq(userTable.username, input.username));
+        }
+        return user[0]?.role;
+      } catch (error) {
+        console.error("Error during login:", error);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Something went wrong!",
+        });
+      }
+    }),
+  changePassword: publicProcedure
+    .input(userChangePassword)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const user = await ctx.db
+          .select()
+          .from(userTable)
+          .where(eq(userTable.username, input.username));
+
+        console.log(user);
+
+        if (!user || user.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No such account exists",
+          });
+        }
+
+        const storedHashedPassword = user[0]?.password;
+
+        if (storedHashedPassword !== undefined) {
+          const validPassword = await new Argon2id().verify(
+            storedHashedPassword,
+            input.password,
+          );
+
+          if (!validPassword) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Incorrect password",
+            });
+          }
+        }
+        const newHashedPassword = await new Argon2id().hash(input.newPassword);
+        await ctx.db
+          .update(userTable)
+          .set({ password: newHashedPassword })
+          .where(eq(userTable.username, input.username));
+        return user[0]?.role;
+      } catch (error) {
+        console.error("Error during login:", error);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Something went wrong!",
         });
       }
     }),

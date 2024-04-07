@@ -1,8 +1,11 @@
 import { validateRequest } from "@/server/auth";
-import { redirect } from "next/navigation";
-
-export default async function layout() {
+import Link from "next/link";
+import { redirect, useRouter } from "next/navigation";
+type Props = {
+  children: React.ReactNode;
+};
+export default async function layout({ children }: Props) {
   const { user } = await validateRequest();
   if (!user) return redirect("/login");
-  return <></>;
+  return <>{children}</>;
 }

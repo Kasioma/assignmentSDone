@@ -17,8 +17,18 @@ export default function Page() {
       console.log(error.message);
       setErrorMessage(error.message);
     },
-    onSuccess() {
-      router.replace("/");
+    onSuccess(data) {
+      switch (data) {
+        case "admin":
+          router.replace("/admin");
+          break;
+        case "referee":
+          router.replace("/referee");
+          break;
+        default:
+          router.replace("/");
+          break;
+      }
     },
   });
 

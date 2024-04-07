@@ -14,6 +14,21 @@ export const userLoginSchema = z.object({
 
 export type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
+export const userChangePassword = z.object({
+  username: z.string().max(20),
+  password: passwordSchema,
+  newPassword: passwordSchema,
+});
+
+export const userChangeUsername = z.object({
+  username: z.string().max(20),
+  newUsername: z.string().max(20),
+  password: passwordSchema,
+});
+
+export type UserChangePassword = z.infer<typeof userChangePassword>;
+export type UserChangeUsername = z.infer<typeof userChangeUsername>;
+
 export const userRegisterSchema = userLoginSchema
   .extend({
     confirmPassword: passwordSchema,

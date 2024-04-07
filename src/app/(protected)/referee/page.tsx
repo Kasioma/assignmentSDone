@@ -1,20 +1,24 @@
 import { validateRequest } from "@/server/auth";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-type Props = {
-  children: React.ReactNode;
-};
-export default async function layout({ children }: Props) {
+
+export default async function Page() {
   const { user } = await validateRequest();
   const data = user?.role;
-  if (user)
+  if (user) {
     switch (data) {
       case "admin":
         redirect("/admin");
-      case "referee":
-        redirect("/referee");
-      default:
+      case "player":
         redirect("/");
+      default:
+        break;
     }
-
-  return <>{children}</>;
+  }
+  return (
+    <>
+      <h2>REFEREE</h2>
+      <Link href="/settings">Settings</Link>
+    </>
+  );
 }
