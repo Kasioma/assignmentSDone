@@ -8,7 +8,7 @@ import {
 import { Argon2id } from "oslo/password";
 import { generateId } from "lucia";
 import { userTable } from "@/server/db/schema";
-import { lucia } from "@/server/auth";
+import { lucia, validateRequest } from "@/server/auth";
 import { cookies } from "next/headers";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
@@ -98,6 +98,7 @@ export const authRouter = createTRPCRouter({
   changeUsername: publicProcedure
     .input(userChangeUsername)
     .mutation(async ({ ctx, input }) => {
+      const sessionUser = await validateRequest();
       try {
         const user = await ctx.db
           .select()
@@ -106,7 +107,11 @@ export const authRouter = createTRPCRouter({
 
         console.log(user);
 
-        if (!user || user.length === 0) {
+        if (
+          !user ||
+          user.length === 0 ||
+            sessionUser.user?.username != input.username
+        ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "No such account exists",
@@ -155,6 +160,7 @@ export const authRouter = createTRPCRouter({
   changePassword: publicProcedure
     .input(userChangePassword)
     .mutation(async ({ ctx, input }) => {
+      const sessionUser = await validateRequest();
       try {
         const user = await ctx.db
           .select()
@@ -163,7 +169,11 @@ export const authRouter = createTRPCRouter({
 
         console.log(user);
 
-        if (!user || user.length === 0) {
+        if (
+          !user ||
+          user.length === 0 ||
+          sessionUser.user?.username != input.username
+        ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "No such account exists",

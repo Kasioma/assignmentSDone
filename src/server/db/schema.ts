@@ -2,6 +2,7 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import { UserRole } from "@/lib/utils";
+import { timeStamp } from "console";
 import * as lite from "drizzle-orm/sqlite-core";
 
 /**
@@ -26,4 +27,45 @@ export const sessionTable = createTable("session", {
     .notNull()
     .references(() => userTable.id),
   expiresAt: lite.integer("expires_at").notNull(),
+});
+
+export const tournamentsTable = createTable("tournaments", {
+  id: lite.text("id").notNull().primaryKey(),
+  name: lite.text("name").notNull().unique(),
+  startDate: lite.integer("startDate", { mode: "timestamp" }).notNull(),
+  endDate: lite.integer("endDate", { mode: "timestamp" }).notNull(),
+});
+
+export const matchTable = createTable("match", {
+  id: lite.text("id").notNull().primaryKey(),
+  tournamentName: lite
+    .text("tournamentName")
+    .notNull()
+    .references(() => tournamentsTable.name),
+  playerOne: lite
+    .text("playerOne")
+    .notNull()
+    .references(() => userTable.username),
+  playerTwo: lite
+    .text("playerTwo")
+    .notNull()
+    .references(() => userTable.username),
+  referee: lite
+    .text("referee")
+    .notNull()
+    .references(() => userTable.username),
+  scoreOne: lite.integer("scoreOne"),
+  scoreTwo: lite.integer("scoreTwo"),
+});
+
+export const tournamentResitration = createTable("registration", {
+  id: lite.text("id").notNull().primaryKey(),
+  tournamentName: lite
+    .text("tournamentName")
+    .notNull()
+    .references(() => tournamentsTable.name),
+  playerName: lite
+    .text("playerName")
+    .notNull()
+    .references(() => userTable.username),
 });
