@@ -110,7 +110,7 @@ export const authRouter = createTRPCRouter({
         if (
           !user ||
           user.length === 0 ||
-            sessionUser.user?.username != input.username
+          sessionUser.user?.username != input.username
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",

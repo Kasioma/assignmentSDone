@@ -8,8 +8,20 @@ import { eq } from "drizzle-orm";
 import { validateRequest } from "@/server/auth";
 import { generateId } from "lucia";
 
+async function isRole(role: string) {
+  const user = await validateRequest();
+  if (user) return user.user?.role === role;
+  return false;
+}
+
 export const adminRouter = createTRPCRouter({
   display: publicProcedure.query(async () => {
+    if (!(await isRole("admin"))) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Incorrect role",
+      });
+    }
     try {
       const users = await db.select().from(userTable);
       console.log(users);
@@ -24,6 +36,12 @@ export const adminRouter = createTRPCRouter({
   modify: publicProcedure
     .input(changeCredentials.extend({ currentUsername: z.string().max(20) }))
     .mutation(async ({ ctx, input }) => {
+      if (!(await isRole("admin"))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Incorrect role",
+        });
+      }
       try {
         const user = await ctx.db
           .select()
@@ -50,6 +68,12 @@ export const adminRouter = createTRPCRouter({
   deleteUser: publicProcedure
     .input(z.object({ username: z.string().max(20) }))
     .mutation(async ({ ctx, input }) => {
+      if (!(await isRole("admin"))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Incorrect role",
+        });
+      }
       try {
         await ctx.db
           .delete(userTable)
@@ -64,6 +88,12 @@ export const adminRouter = createTRPCRouter({
   tournament: publicProcedure
     .input(tournamentCreateValidator)
     .mutation(async ({ ctx, input }) => {
+      if (!(await isRole("admin"))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Incorrect role",
+        });
+      }
       const sessionUser = await validateRequest();
       const id = generateId(15);
       try {
@@ -73,7 +103,7 @@ export const adminRouter = createTRPCRouter({
             message: "Incorrect role",
           });
         }
-        await ctx.db.insert(tournamentsTable).values({...input, id});
+        await ctx.db.insert(tournamentsTable).values({ ...input, id, adminId: sessionUser.user.id });
       } catch {
         throw new TRPCError({
           code: "BAD_REQUEST",

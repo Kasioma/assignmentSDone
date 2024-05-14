@@ -5,16 +5,16 @@ import {
 } from "@/lib/validators";
 import { api } from "@/trpc/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEventHandler, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
+import { FormEventHandler, useEffect, useState } from "react";
 
 type TournamentCreateValidatorKey = keyof TournamentCreateValidator;
 type ErrorType = Partial<Record<TournamentCreateValidatorKey, string>>;
 
 export default function Page() {
+  const router = useRouter();
   const [error, setError] = useState<ErrorType>();
   const [errorMessage, setErrorMessage] = useState<string>();
-  const router = useRouter();
   const tournamentMutation = api.admin.tournament.useMutation({
     onError(error) {
       console.log(error.message);

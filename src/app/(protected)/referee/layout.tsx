@@ -5,16 +5,6 @@ type Props = {
 };
 export default async function layout({ children }: Props) {
   const { user } = await validateRequest();
-  const data = user?.role;
-  if (user)
-    switch (data) {
-      case "admin":
-        redirect("/admin");
-      case "referee":
-        redirect("/referee");
-      default:
-        redirect("/player");
-    }
-
+  if (user?.role != "referee") return redirect("/login");
   return <>{children}</>;
 }

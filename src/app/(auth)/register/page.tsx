@@ -26,7 +26,7 @@ export default function Page() {
           router.replace("/referee");
           break;
         default:
-          router.replace("/");
+          router.replace("/player");
           break;
       }
     },

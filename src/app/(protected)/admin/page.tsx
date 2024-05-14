@@ -132,7 +132,7 @@ function UpdateUserInfo({ user, setUser }: Props) {
 
   return (
     <>
-    <h1>ADMIN</h1>
+      <h1>ADMIN</h1>
 
       <h2 className="mt-8 text-2xl underline">Change account information</h2>
       <form onSubmit={handleChange}>

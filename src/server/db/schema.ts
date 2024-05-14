@@ -1,8 +1,9 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { UserRole } from "@/lib/utils";
+import { RegistrationStatus, UserRole } from "@/lib/utils";
 import { timeStamp } from "console";
+import { InferSelectModel } from "drizzle-orm";
 import * as lite from "drizzle-orm/sqlite-core";
 
 /**
@@ -34,7 +35,12 @@ export const tournamentsTable = createTable("tournaments", {
   name: lite.text("name").notNull().unique(),
   startDate: lite.integer("startDate", { mode: "timestamp" }).notNull(),
   endDate: lite.integer("endDate", { mode: "timestamp" }).notNull(),
+  adminId: lite
+    .text("admin_id")
+    .notNull()
+    .references(() => userTable.id),
 });
+export type Tournament = InferSelectModel<typeof tournamentsTable>;
 
 export const matchTable = createTable("match", {
   id: lite.text("id").notNull().primaryKey(),
@@ -68,4 +74,17 @@ export const tournamentResitration = createTable("registration", {
     .text("playerName")
     .notNull()
     .references(() => userTable.username),
+  status: lite
+    .text("status")
+    .notNull()
+    .$type<RegistrationStatus>()
+    .default("pending"),
 });
+
+export const adminMail = createTable("adminMails",{
+  adminId: lite
+    .text("admin_id")
+    .notNull()
+    .references(() => userTable.id),
+  mail: lite.text("email").notNull().primaryKey(),
+})
